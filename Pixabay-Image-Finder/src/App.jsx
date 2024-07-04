@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import React, { Component } from 'react'
 import './App.css'
+import axios from 'axios'
+import { Navbar, ImageResults } from './components/index'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default class App extends Component {
+  state = {
+    searchText: '',
+    amount: 10,
+    images: []
+  }
 
-  return (
-    <>
+  handleChange = input => e => {
+    const val = e.target.value;
+    this.setState({ [input]: val },
+      () => {
+        const apiKey = String(import.meta.env.VITE_PIXEBAY_API_KEY);
+        const pixabayURL = String(import.meta.env.VITE_PIXABAY_URL);
+        axios.get(`${pixabayURL}/?key=${apiKey}&q=${this.state.searchText}&image_type=photo&per_page=${this.state.amount}&safesearch=true`)
+          .then(res => this.setState({ images: res.data.hits }))
+          .catch(err => console.log(err));
+      }
+    )
+  }
+
+  render() {
+    const { searchText, amount, images } = this.state;
+    const values = { searchText, amount, images };
+
+    return (
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <Navbar
+          handleChange={this.handleChange}
+          values={values}
+        />
+        {images.length > 0 ? (<ImageResults images={images} />) : null}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    )
+  }
 }
-
-export default App
